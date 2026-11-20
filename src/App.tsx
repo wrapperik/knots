@@ -1,13 +1,25 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { AppSidebar } from '@/components/app-sidebar'
-import { TranscriptDropzone } from '@/components/transcript-dropzone'
+import { NewMeetingPanel } from '@/components/new-meeting-panel'
+import { RecentMeetings } from '@/components/recent-meetings'
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
+import { getRecentMeetings, type Meeting } from '@/lib/meetings'
 
 function App() {
-  // The page owns the transcript text; the dropzone only reads the file and
-  // hands the text up. Null means nothing has been uploaded yet.
-  const [transcript, setTranscript] = useState<string | null>(null)
+  // Null while the meetings are loading.
+  const [meetings, setMeetings] = useState<Meeting[] | null>(null)
+
+  useEffect(() => {
+    // Ignores the result if the page unmounts before the request finishes.
+    let ignore = false
+    getRecentMeetings().then((result) => {
+      if (!ignore) setMeetings(result)
+    })
+    return () => {
+      ignore = true
+    }
+  }, [])
 
   return (
     <SidebarProvider>
@@ -18,29 +30,22 @@ function App() {
           <h1 className="text-lg">Meetings</h1>
         </header>
 
-        {/* flex-1 fills the space under the header, so centring is relative to the page. */}
-        <main className="flex flex-1 items-center justify-center p-6">
-          <div className="w-full max-w-xl space-y-6">
-            <div className="space-y-2 text-center">
-              <h2 className="text-4xl">Tie up your meeting</h2>
-              <p className="text-muted-foreground">
-                Upload a transcript to get a summary, decisions and action items.
-              </p>
+        {meetings === null ? null : meetings.length > 0 ? (
+          // Two columns from the lg breakpoint. On smaller screens the upload
+          // moves above the list, as it is the main action.
+          <main className="grid flex-1 grid-cols-1 content-start gap-10 p-6 lg:grid-cols-2 lg:p-10">
+            <RecentMeetings meetings={meetings} />
+            <div className="order-first lg:order-none">
+              <NewMeetingPanel align="start" />
             </div>
-
-            <TranscriptDropzone
-              onTranscriptRead={(text) => setTranscript(text)}
-              onClear={() => setTranscript(null)}
-            />
-
-            {/* Preview of the first 1,000 characters of the transcript. */}
-            {transcript && (
-              <pre className="max-h-48 overflow-auto rounded-lg border bg-card p-4 text-xs whitespace-pre-wrap">
-                {transcript.slice(0, 1000)}
-              </pre>
-            )}
-          </div>
-        </main>
+          </main>
+        ) : (
+          <main className="flex flex-1 items-center justify-center p-6">
+            <div className="w-full max-w-xl">
+              <NewMeetingPanel align="center" />
+            </div>
+          </main>
+        )}
       </SidebarInset>
     </SidebarProvider>
   )
