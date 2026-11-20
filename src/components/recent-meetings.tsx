@@ -30,21 +30,25 @@ export function RecentMeetings({ meetings }: RecentMeetingsProps) {
                             <a
                                 href={`/meetings/${meeting.id}`}
                                 className={cn(
-                                    'flex items-center gap-4 rounded-xl border bg-card p-4 transition-colors outline-none',
+                                    'flex items-center gap-4 border-b p-4 transition-colors outline-none',
                                     'hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring',
                                 )}
                             >
                                 <CalendarDays className="size-5 shrink-0 text-muted-foreground" aria-hidden="true" />
-                                <div className="min-w-0 flex-1">
-                                    <p className="truncate font-medium">{meeting.title}</p>
-                                    <p className="text-sm text-muted-foreground">
+
+                                {/* Stacked on small screens, side by side from sm up. */}
+                               <div className="min-w-0 flex-1 sm:flex sm:items-center sm:gap-4">
+                                        <p className="truncate font-medium sm:w-72">{meeting.title}</p>
+                                        <p className="text-sm text-muted-foreground sm:flex-1">
                                         {formatMeetingDate(meeting.meetingDate)}
                                         {meeting.openActionItems > 0 && ` · ${meeting.openActionItems} open items`}
                                     </p>
                                 </div>
+
+                                {/* Fixed width, so every row's date starts at the same point. */}
                                 <span
                                     className={cn(
-                                        'shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium',
+                                        'w-24 shrink-0 rounded-full py-0.5 text-center text-xs font-medium',
                                         status.className,
                                     )}
                                 >

@@ -60,16 +60,28 @@ export function AppSidebar() {
   return (
     // collapsible="icon": on desktop the trigger shrinks the sidebar to icons
     // instead of hiding it. On mobile it always opens as a slide-out sheet.
-    <Sidebar collapsible="icon">
+    <Sidebar collapsible="icon" variant="inset" >
       <SidebarHeader>
         {/*
           The sidebar sets data-collapsible="icon" on a parent "group" when it is
           collapsed, so group-data-[collapsible=icon]: styles only apply then.
-          The collapsed sidebar shows "k" instead of the full word.
+          The collapsed sidebar shows the logo mark instead of the wordmark.
         */}
-        <a href="/meetings" aria-label="Knots home" className="px-2 py-1 font-heading text-2xl">
-          <span className="group-data-[collapsible=icon]:hidden">knots</span>
-          <span className="hidden group-data-[collapsible=icon]:inline">k</span>
+        <a
+          href="/meetings"
+          aria-label="Knots home"
+          className="flex items-center px-2 py-1 group-data-[collapsible=icon]:px-0"
+        >
+          <img
+            src="/logo-wordmark.svg"
+            alt=""
+            className="h-15 w-auto ml-[-15px] group-data-[collapsible=icon]:hidden"
+          />
+          <img
+            src="/logo.svg"
+            alt=""
+            className="hidden size-8 group-data-[collapsible=icon]:block"
+          />
         </a>
       </SidebarHeader>
 

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 
 import { AppSidebar } from '@/components/app-sidebar'
+import { MeetingStats } from '@/components/meeting-stats'
 import { NewMeetingPanel } from '@/components/new-meeting-panel'
 import { RecentMeetings } from '@/components/recent-meetings'
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
@@ -27,17 +28,15 @@ function App() {
       <SidebarInset>
         <header className="flex h-14 items-center gap-2 border-b px-4">
           <SidebarTrigger />
-          <h1 className="text-lg">Meetings</h1>
+          <h1 className="font-sans text-lg font-medium">Meetings</h1>
         </header>
 
         {meetings === null ? null : meetings.length > 0 ? (
-          // Two columns from the lg breakpoint. On smaller screens the upload
-          // moves above the list, as it is the main action.
-          <main className="grid flex-1 grid-cols-1 content-start gap-10 p-6 lg:grid-cols-2 lg:p-10">
+          // One column: stats, then the upload, then the meetings list.
+          <main className="flex flex-1 flex-col gap-10 p-6 lg:p-10">
+            <MeetingStats meetings={meetings} />
+            <NewMeetingPanel align="start" />
             <RecentMeetings meetings={meetings} />
-            <div className="order-first lg:order-none">
-              <NewMeetingPanel align="start" />
-            </div>
           </main>
         ) : (
           <main className="flex flex-1 items-center justify-center p-6">

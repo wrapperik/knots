@@ -3,14 +3,14 @@
 @import "shadcn/tailwind.css";
 
 /* Self-hosted fonts (no request to Google at runtime) */
-@import "@fontsource/momo-trust-display";
+@import "@fontsource-variable/plus-jakarta-sans";
 @import "@fontsource-variable/dm-sans";
 
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
     --font-sans: "DM Sans Variable", ui-sans-serif, system-ui, sans-serif;
-    --font-heading: "Momo Trust Display", ui-serif, Georgia, serif;
+    --font-heading: "Plus Jakarta Sans Variable", ui-sans-serif, system-ui, sans-serif;
     --radius-sm: calc(var(--radius) * 0.6);
     --radius-md: calc(var(--radius) * 0.8);
     --radius-lg: var(--radius);
@@ -134,7 +134,8 @@
     }
   /* Momo Trust Display only ships in weight 400, so keep headings at normal
      weight rather than letting the browser fake a bold. */
-  h1, h2, h3, h4, h5, h6 {
-    @apply font-heading font-normal;
-    }
+/* Headings use Plus Jakarta Sans at SemiBold (600). */
+h1, h2, h3, h4, h5, h6 {
+  @apply font-heading font-semibold;
+}
 }

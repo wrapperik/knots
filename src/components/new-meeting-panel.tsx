@@ -15,14 +15,14 @@ export function NewMeetingPanel({ align = 'center' }: NewMeetingPanelProps) {
 
   return (
     <section aria-labelledby="new-meeting-heading" className="space-y-6">
-      <div className={cn('space-y-2', isCentred && 'text-center')}>
+      {/* <div className={cn('space-y-2', isCentred && 'text-center')}>
         <h2 id="new-meeting-heading" className={isCentred ? 'text-4xl' : 'text-2xl'}>
           {isCentred ? 'Tie up your meeting' : 'New meeting'}
         </h2>
         <p className="text-muted-foreground">
           Upload a transcript to get a summary, decisions and action items.
         </p>
-      </div>
+      </div> */}
 
       <TranscriptDropzone
         onTranscriptRead={(text) => setTranscript(text)}

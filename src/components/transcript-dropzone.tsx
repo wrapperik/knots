@@ -92,7 +92,7 @@ export function TranscriptDropzone({ onTranscriptRead, onClear }: TranscriptDrop
           'aria-label': 'Upload a transcript',
           className: cn(
             'flex cursor-pointer flex-col items-center gap-3 rounded-xl border-2 border-dashed',
-            'bg-card px-6 py-12 text-center transition-colors outline-none',
+            ' px-6 py-12 text-center transition-colors outline-none',
             'focus-visible:ring-2 focus-visible:ring-ring',
             isDragActive && 'border-primary bg-primary/5',
             isReading && 'cursor-wait opacity-60',
@@ -100,9 +100,13 @@ export function TranscriptDropzone({ onTranscriptRead, onClear }: TranscriptDrop
         })}
       >
         <input {...getInputProps()} />
-        <Upload className="size-8 text-muted-foreground" aria-hidden="true" />
+        {/* Looks like a button, but the whole drop area is the clickable control. */}
+        <span className="mb-2 inline-flex items-center gap-2 rounded-lg border bg-background px-4 py-2 font-medium shadow-sm">
+          <Upload className="size-4" aria-hidden="true" />
+          Upload
+        </span>
         <p className="font-medium">
-          {isDragActive ? 'Drop the transcript here' : 'Drag a transcript here, or click to browse'}
+          {isDragActive ? 'Drop the transcript here' : 'Choose a file or drag and drop it here'}
         </p>
         <p className="text-sm text-muted-foreground">.txt, .vtt or .md, up to 1 MB</p>
       </div>
