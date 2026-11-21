@@ -4,6 +4,7 @@ export type Meeting = {
     id: string
     title: string
     meetingDate: string // ISO date, e.g. "2026-11-18"
+    startTime: string | null // 24-hour time, e.g. "09:30". Null when unknown.
     status: MeetingStatus
     openActionItems: number
 }
@@ -14,6 +15,7 @@ const SAMPLE_MEETINGS: Meeting[] = [
         id: '1',
         title: 'Weekly product sync',
         meetingDate: '2026-11-18',
+        startTime: '09:30',
         status: 'done',
         openActionItems: 4,
     },
@@ -21,6 +23,7 @@ const SAMPLE_MEETINGS: Meeting[] = [
         id: '2',
         title: 'Client kick-off: Ridgeway',
         meetingDate: '2026-11-16',
+        startTime: '14:00',
         status: 'processing',
         openActionItems: 0,
     },
@@ -28,6 +31,7 @@ const SAMPLE_MEETINGS: Meeting[] = [
         id: '3',
         title: 'Design review',
         meetingDate: '2026-11-12',
+        startTime: '11:15',
         status: 'failed',
         openActionItems: 0,
     },
@@ -49,4 +53,9 @@ export function formatMeetingDate(isoDate: string): string {
         month: 'long',
         year: 'numeric',
     }).format(new Date(`${isoDate}T00:00:00`))
+}
+
+// Format "09:30:00" or "09:30" as "09:30". Postgres time columns include seconds.
+export function formatStartTime(time: string | null): string | null {
+    return time ? time.slice(0, 5) : null
 }

@@ -33,7 +33,8 @@ const accountItems: NavItem[] = [
 // Renders a list of links. Shared by the sidebar content and footer.
 function NavList({ items }: { items: NavItem[] }) {
   // TODO: replace with the current route once routing is added.
-  const currentPath = window.location.pathname
+  // The homepage shows the meetings, so "/" counts as /meetings.
+  const currentPath = window.location.pathname === '/' ? '/meetings' : window.location.pathname
 
   return (
     <SidebarMenu>
@@ -44,7 +45,13 @@ function NavList({ items }: { items: NavItem[] }) {
             rendering its own <button>.
             tooltip: shown when the sidebar is collapsed to icons only.
           */}
-          <SidebarMenuButton asChild isActive={currentPath === item.url} tooltip={item.title}>
+          <SidebarMenuButton
+            asChild
+            isActive={currentPath === item.url}
+            tooltip={item.title}
+            // The current page shows as a near-black pill.
+            className="data-[active=true]:bg-sidebar-foreground data-[active=true]:text-sidebar data-[active=true]:hover:bg-sidebar-foreground data-[active=true]:hover:text-sidebar"
+          >
             <a href={item.url}>
               <item.icon />
               <span>{item.title}</span>

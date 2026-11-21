@@ -101,7 +101,7 @@ export function TranscriptDropzone({ onTranscriptRead, onClear }: TranscriptDrop
       >
         <input {...getInputProps()} />
         {/* Looks like a button, but the whole drop area is the clickable control. */}
-        <span className="mb-2 inline-flex items-center gap-2 rounded-lg border bg-background px-4 py-2 font-medium shadow-sm">
+        <span className="mb-2 inline-flex items-center gap-2 rounded-lg bg-foreground px-4 py-2 font-medium text-background shadow-sm">
           <Upload className="size-4" aria-hidden="true" />
           Upload
         </span>
