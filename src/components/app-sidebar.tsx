@@ -1,4 +1,5 @@
 import { CalendarDays, ListChecks, LogOut, Plus, UserRound, type LucideIcon } from 'lucide-react'
+import { Link, useLocation, useNavigate } from 'react-router'
 
 import {
   Sidebar,
@@ -11,6 +12,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar'
+import { supabase } from '@/lib/supabase'
 
 // The shape of one navigation link. The type catches typos at build time.
 type NavItem = {
@@ -21,7 +23,7 @@ type NavItem = {
 
 // Navigation links, kept as data so each page is one entry.
 const workspaceItems: NavItem[] = [
-  { title: 'Meetings', url: '/meetings', icon: CalendarDays },
+  { title: 'Meetings', url: '/', icon: CalendarDays },
   { title: 'My open items', url: '/action-items', icon: ListChecks },
   { title: 'New meeting', url: '/meetings/new', icon: Plus },
 ]
@@ -32,30 +34,29 @@ const accountItems: NavItem[] = [
 
 // Renders a list of links. Shared by the sidebar content and footer.
 function NavList({ items }: { items: NavItem[] }) {
-  // TODO: replace with the current route once routing is added.
-  // The homepage shows the meetings, so "/" counts as /meetings.
-  const currentPath = window.location.pathname === '/' ? '/meetings' : window.location.pathname
+  // The current address, kept up to date by React Router.
+  const { pathname } = useLocation()
 
   return (
     <SidebarMenu>
       {items.map((item) => (
         <SidebarMenuItem key={item.url}>
           {/*
-            asChild: the button passes its styling to the child <a> instead of
+            asChild: the button passes its styling to the child <Link> instead of
             rendering its own <button>.
             tooltip: shown when the sidebar is collapsed to icons only.
           */}
           <SidebarMenuButton
             asChild
-            isActive={currentPath === item.url}
+            isActive={pathname === item.url}
             tooltip={item.title}
             // The current page shows as a near-black pill.
             className="data-[active=true]:bg-sidebar-foreground data-[active=true]:text-sidebar data-[active=true]:hover:bg-sidebar-foreground data-[active=true]:hover:text-sidebar"
           >
-            <a href={item.url}>
+            <Link to={item.url}>
               <item.icon />
               <span>{item.title}</span>
-            </a>
+            </Link>
           </SidebarMenuButton>
         </SidebarMenuItem>
       ))}
@@ -64,6 +65,13 @@ function NavList({ items }: { items: NavItem[] }) {
 }
 
 export function AppSidebar() {
+  const navigate = useNavigate()
+
+  async function handleLogOut() {
+    await supabase.auth.signOut()
+    navigate('/login', { replace: true })
+  }
+
   return (
     // collapsible="icon": on desktop the trigger shrinks the sidebar to icons
     // instead of hiding it. On mobile it always opens as a slide-out sheet.
@@ -74,8 +82,8 @@ export function AppSidebar() {
           collapsed, so group-data-[collapsible=icon]: styles only apply then.
           The collapsed sidebar shows the logo mark instead of the wordmark.
         */}
-        <a
-          href="/meetings"
+        <Link
+          to="/"
           aria-label="Knots home"
           className="flex items-center px-2 py-1 group-data-[collapsible=icon]:px-0"
         >
@@ -89,7 +97,7 @@ export function AppSidebar() {
             alt=""
             className="hidden size-8 group-data-[collapsible=icon]:block"
           />
-        </a>
+        </Link>
       </SidebarHeader>
 
       <SidebarContent>
@@ -104,7 +112,7 @@ export function AppSidebar() {
         <SidebarMenu>
           <SidebarMenuItem>
             {/* A real button, not a link: logging out is an action, not a page. */}
-            <SidebarMenuButton tooltip="Log out" onClick={() => {/* TODO: supabase.auth.signOut() */}}>
+            <SidebarMenuButton tooltip="Log out" onClick={handleLogOut}>
               <LogOut />
               <span>Log out</span>
             </SidebarMenuButton>

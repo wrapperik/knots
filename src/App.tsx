@@ -1,52 +1,31 @@
-import { useEffect, useState } from 'react'
+import { Navigate, Route, Routes } from 'react-router'
 
-import { AppSidebar } from '@/components/app-sidebar'
-import { MeetingStats } from '@/components/meeting-stats'
-import { NewMeetingPanel } from '@/components/new-meeting-panel'
-import { RecentMeetings } from '@/components/recent-meetings'
-import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
-import { getRecentMeetings, type Meeting } from '@/lib/meetings'
+import { AppLayout } from '@/components/app-layout'
+import { RequireAuth, RequireGuest } from '@/components/auth/route-guards'
+import { HomePage } from '@/pages/home-page'
+import { LoginPage } from '@/pages/login-page'
+import { SignupPage } from '@/pages/signup-page'
 
+// Every page in the app and who may see it.
 function App() {
-  // Null while the meetings are loading.
-  const [meetings, setMeetings] = useState<Meeting[] | null>(null)
-
-  useEffect(() => {
-    // Ignores the result if the page unmounts before the request finishes.
-    let ignore = false
-    getRecentMeetings().then((result) => {
-      if (!ignore) setMeetings(result)
-    })
-    return () => {
-      ignore = true
-    }
-  }, [])
-
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset>
-        <header className="flex h-14 items-center gap-2 border-b px-4">
-          <SidebarTrigger />
-          <h1 className="font-sans text-lg font-medium">Meetings</h1>
-        </header>
+    <Routes>
+      {/* Only for visitors who are not logged in. */}
+      <Route element={<RequireGuest />}>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/signup" element={<SignupPage />} />
+      </Route>
 
-        {meetings === null ? null : meetings.length > 0 ? (
-          // One column: stats, then the upload, then the meetings list.
-          <main className="flex flex-1 flex-col gap-10 p-6 lg:p-10">
-            <MeetingStats meetings={meetings} />
-            <NewMeetingPanel />
-            <RecentMeetings meetings={meetings} />
-          </main>
-        ) : (
-          <main className="flex flex-1 items-center justify-center p-6">
-            <div className="w-full max-w-xl">
-              <NewMeetingPanel />
-            </div>
-          </main>
-        )}
-      </SidebarInset>
-    </SidebarProvider>
+      {/* Only for logged-in users, inside the sidebar layout. */}
+      <Route element={<RequireAuth />}>
+        <Route element={<AppLayout />}>
+          <Route path="/" element={<HomePage />} />
+        </Route>
+      </Route>
+
+      {/* Any other address goes home, which sends visitors to the login page. */}
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   )
 }
 
