@@ -35,13 +35,13 @@ function App() {
           // One column: stats, then the upload, then the meetings list.
           <main className="flex flex-1 flex-col gap-10 p-6 lg:p-10">
             <MeetingStats meetings={meetings} />
-            <NewMeetingPanel align="start" />
+            <NewMeetingPanel />
             <RecentMeetings meetings={meetings} />
           </main>
         ) : (
           <main className="flex flex-1 items-center justify-center p-6">
             <div className="w-full max-w-xl">
-              <NewMeetingPanel align="center" />
+              <NewMeetingPanel />
             </div>
           </main>
         )}
