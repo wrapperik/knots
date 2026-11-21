@@ -262,3 +262,158 @@ create trigger action_items_sync_completed_at
     before insert or update of status on public.action_items
     for each row execute function public.sync_completed_at();
 
+
+-- ---------------------------------------------------------------------------
+-- Analysis runs: one row per AI attempt, kept for retries, limits and debugging
+-- ---------------------------------------------------------------------------
+
+create table public.analysis_runs (
+  id uuid primary key default gen_random_uuid(),
+  meeting_id uuid not null references public.meetings (id) on delete cascade,
+  -- Who ran the analysis. Used to limit how many runs a user can start per day.
+  user_id uuid not null default auth.uid() references public.profiles (id) on delete cascade,
+  model text not null check (char_length(model) between 1 and 200),
+  status text not null check (status in ('succeeded', 'failed')),
+  error text check (char_length(error) <= 1000),
+  duration_ms integer check (duration_ms >= 0),
+  prompt_tokens integer check (prompt_tokens >= 0),
+  completion_tokens integer check (completion_tokens >= 0),
+  -- The AI's reply as received, so a reply that failed validation can be inspected.
+  raw_response jsonb,
+  created_at timestamptz not null default now(),
+  -- A failed run must say why.
+  check (status = 'succeeded' or error is not null)
+);
+
+create index analysis_runs_meeting_idx on public.analysis_runs (meeting_id, created_at desc);
+-- For counting a user's runs today.
+create index analysis_runs_user_idx on public.analysis_runs (user_id, created_at desc);
+
+
+-- ---------------------------------------------------------------------------
+-- Row Level Security: each active user can only reach their own rows
+-- ---------------------------------------------------------------------------
+
+alter table public.profiles enable row level security;
+alter table public.meetings enable row level security;
+alter table public.decisions enable row level security;
+alter table public.action_items enable row level security;
+alter table public.analysis_runs enable row level security;
+
+-- Profiles: users read and update their own. Created by the trigger, never deleted.
+create policy "Users can view their own profile"
+  on public.profiles for select to authenticated
+  using (id = (select auth.uid()));
+
+create policy "Active users can update their own profile"
+  on public.profiles for update to authenticated
+  using (id = (select auth.uid()) and (select public.is_active_user()))
+  with check (id = (select auth.uid()));
+
+-- Meetings
+create policy "Active users can view their own meetings"
+  on public.meetings for select to authenticated
+  using (user_id = (select auth.uid()) and (select public.is_active_user()));
+
+create policy "Active users can create their own meetings"
+  on public.meetings for insert to authenticated
+  with check (user_id = (select auth.uid()) and (select public.is_active_user()));
+
+create policy "Active users can update their own meetings"
+  on public.meetings for update to authenticated
+  using (user_id = (select auth.uid()) and (select public.is_active_user()))
+  with check (user_id = (select auth.uid()));
+
+create policy "Active users can delete their own meetings"
+  on public.meetings for delete to authenticated
+  using (user_id = (select auth.uid()) and (select public.is_active_user()));
+
+-- Decisions
+create policy "Active users can view their own decisions"
+  on public.decisions for select to authenticated
+  using (user_id = (select auth.uid()) and (select public.is_active_user()));
+
+create policy "Active users can create their own decisions"
+  on public.decisions for insert to authenticated
+  with check (user_id = (select auth.uid()) and (select public.is_active_user()));
+
+create policy "Active users can update their own decisions"
+  on public.decisions for update to authenticated
+  using (user_id = (select auth.uid()) and (select public.is_active_user()))
+  with check (user_id = (select auth.uid()));
+
+create policy "Active users can delete their own decisions"
+  on public.decisions for delete to authenticated
+  using (user_id = (select auth.uid()) and (select public.is_active_user()));
+
+-- Action items
+create policy "Active users can view their own action items"
+  on public.action_items for select to authenticated
+  using (user_id = (select auth.uid()) and (select public.is_active_user()));
+
+create policy "Active users can create their own action items"
+  on public.action_items for insert to authenticated
+  with check (user_id = (select auth.uid()) and (select public.is_active_user()));
+
+create policy "Active users can update their own action items"
+  on public.action_items for update to authenticated
+  using (user_id = (select auth.uid()) and (select public.is_active_user()))
+  with check (user_id = (select auth.uid()));
+
+create policy "Active users can delete their own action items"
+  on public.action_items for delete to authenticated
+  using (user_id = (select auth.uid()) and (select public.is_active_user()));
+
+-- Analysis runs: users read and add runs for their own meetings. Never changed afterwards.
+create policy "Active users can view runs for their own meetings"
+  on public.analysis_runs for select to authenticated
+  using (
+    (select public.is_active_user())
+    and exists (
+      select 1 from public.meetings m
+      where m.id = meeting_id and m.user_id = (select auth.uid())
+    )
+  );
+
+create policy "Active users can record runs for their own meetings"
+  on public.analysis_runs for insert to authenticated
+  with check (
+    user_id = (select auth.uid())
+    and (select public.is_active_user())
+    and exists (
+      select 1 from public.meetings m
+      where m.id = meeting_id and m.user_id = (select auth.uid())
+    )
+  );
+
+
+-- ---------------------------------------------------------------------------
+-- Column permissions: which columns the app may write
+-- ---------------------------------------------------------------------------
+-- Owners, creators and edit stamps are set by defaults and triggers only, so a
+-- request cannot fake who owns, created or edited a row.
+
+revoke insert, update on public.profiles from authenticated;
+grant update (display_name) on public.profiles to authenticated;
+
+revoke insert, update on public.meetings from authenticated;
+grant insert (title, meeting_date, start_time, source, file_name, transcript)
+  on public.meetings to authenticated;
+grant update (title, meeting_date, start_time, analysis_status, summary, analysis_error)
+  on public.meetings to authenticated;
+
+revoke insert, update on public.decisions from authenticated;
+grant insert (meeting_id, description, source_quote) on public.decisions to authenticated;
+grant update (description) on public.decisions to authenticated;
+
+revoke insert, update on public.action_items from authenticated;
+grant insert (meeting_id, description, owner, due_date, priority, position, status, source_quote)
+  on public.action_items to authenticated;
+grant update (description, owner, due_date, priority, position, status, needs_review)
+  on public.action_items to authenticated;
+
+revoke insert, update, delete on public.analysis_runs from authenticated;
+grant insert (
+  meeting_id, model, status, error, duration_ms, prompt_tokens, completion_tokens, raw_response
+)
+  on public.analysis_runs to authenticated;
