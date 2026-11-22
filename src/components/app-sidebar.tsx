@@ -76,7 +76,7 @@ export function AppSidebar() {
   return (
     // collapsible="icon": on desktop the trigger shrinks the sidebar to icons
     // instead of hiding it. On mobile it always opens as a slide-out sheet.
-    <Sidebar collapsible="icon" >
+    <Sidebar collapsible="icon" variant="inset" >
       <SidebarHeader>
         {/*
           The sidebar sets data-collapsible="icon" on a parent "group" when it is
