@@ -33,7 +33,7 @@ type NewMeetingDialogProps = {
   draft: TranscriptDraft | null
   onClose: () => void
   // Called with the saved meeting's title.
-  onCreated: (title: string) => void
+  onCreated: (id: string, title: string) => void
 }
 
 export function NewMeetingDialog({ draft, onClose, onCreated }: NewMeetingDialogProps) {
@@ -57,7 +57,7 @@ type FieldErrors = Partial<Record<Field, string>>
 type NewMeetingFormProps = {
   draft: TranscriptDraft
   onCancel: () => void
-  onCreated: (title: string) => void
+  onCreated: (id: string, title: string) => void
 }
 
 function NewMeetingForm({ draft, onCancel, onCreated }: NewMeetingFormProps) {
@@ -94,7 +94,7 @@ function NewMeetingForm({ draft, onCancel, onCreated }: NewMeetingFormProps) {
     setIsSaving(true)
 
     try {
-      await createMeeting({
+      const id = await createMeeting({
         title,
         meetingDate,
         // An empty time input means the start time is unknown.
@@ -103,7 +103,7 @@ function NewMeetingForm({ draft, onCancel, onCreated }: NewMeetingFormProps) {
         source: draft.fileName ? 'upload' : 'paste',
         fileName: draft.fileName,
       })
-      onCreated(title.trim())
+      onCreated(id, title.trim())
     } catch (error) {
       // The form keeps everything the user entered, so they can try again.
       setFormError(error instanceof Error ? error.message : 'Something went wrong. Try again.')

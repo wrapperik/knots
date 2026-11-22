@@ -1,4 +1,4 @@
-import type { PostgrestError } from '@supabase/supabase-js'
+import { FunctionsHttpError, type PostgrestError } from '@supabase/supabase-js'
 
 import { supabase } from '@/lib/supabase'
 
@@ -127,6 +127,22 @@ action_items(id, description, owner, due_date, status, needs_review)
             needsReview: item.needs_review,
         })),
     }
+}
+
+// Asks the analyse-meeting Edge Function to analyse a meeting. Resolves when the
+// summary, decisions and action items are saved; throws a plain message if not.
+export async function analyseMeeting(id: string): Promise<void> {
+    const { error } = await supabase.functions.invoke('analyse-meeting', {
+        body: { meetingId: id },
+    })
+    if (!error) return
+    // The function answered with an error status. Its body is { error: "message" }.
+    if (error instanceof FunctionsHttpError) {
+        const body = await error.context.json().catch(() => null)
+        throw new Error(body?.error ?? 'The analysis failed. Try again.')
+    }
+    // The request never got an answer, e.g. no connection.
+    throw new Error('Could not reach the analysis service. Check your connection and try again.')
 }
 
 // Saves a new meeting and returns its id. Its analysis status starts as pending.

@@ -149,6 +149,9 @@ isOneToOne: false
           Functions: {
             "is_active_user":
 { Args: Record<PropertyKey, never>; Returns: boolean
+                           },
+"save_analysis":
+{ Args: { "p_action_items": Json,"p_decisions": Json,"p_meeting_id": string,"p_summary": string }; Returns: undefined
                            }
           }
           Enums: {

@@ -30,6 +30,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { WaveBackground } from '@/components/wave-background'
 import {
   formatMeetingDate,
+  analyseMeeting,
   formatStartTime,
   getMeeting,
   type ActionItemStatus,
@@ -82,6 +83,13 @@ export function MeetingView() {
     }
   }, [meetingId, reloadKey])
 
+  // While an analysis is running, checks again every 3 seconds until it finishes.
+  useEffect(() => {
+    if (meeting?.status !== 'processing') return
+    const timer = setTimeout(() => setReloadKey((key) => key + 1), 3000)
+    return () => clearTimeout(timer)
+  }, [meeting])
+
   return (
     <>
       <header className="flex h-14 items-center gap-2 border-b px-4">
@@ -116,16 +124,38 @@ export function MeetingView() {
           </div>
         </main>
       ) : (
-        <MeetingContent meeting={meeting} />
+        <MeetingContent meeting={meeting} onAnalysed={() => setReloadKey((key) => key + 1)} />
       )}
     </>
   )
 }
 
 // The loaded meeting: summary, decisions and action items beside the transcript.
-function MeetingContent({ meeting }: { meeting: MeetingDetail }) {
+type MeetingContentProps = {
+  meeting: MeetingDetail
+  // Called after an analysis attempt, so the page reloads the meeting.
+  onAnalysed: () => void
+}
+
+function MeetingContent({ meeting, onAnalysed }: MeetingContentProps) {
   const [copied, setCopied] = useState(false)
   const [copyError, setCopyError] = useState(false)
+  const [analysing, setAnalysing] = useState(false)
+  const [analyseError, setAnalyseError] = useState<string | null>(null)
+
+  // Runs the analysis, then reloads the meeting to show the result or the failed status.
+  async function handleAnalyse() {
+    setAnalysing(true)
+    setAnalyseError(null)
+    try {
+      await analyseMeeting(meeting.id)
+    } catch (error) {
+      setAnalyseError((error as Error).message)
+    } finally {
+      setAnalysing(false)
+      onAnalysed()
+    }
+  }
 
   // Copies the transcript and shows "Copied" for two seconds.
   async function handleCopy() {
@@ -163,8 +193,26 @@ function MeetingContent({ meeting }: { meeting: MeetingDetail }) {
               </h3>
               {meeting.summary ? (
                 <p>{meeting.summary}</p>
+              ) : analysing ? (
+                <div className="flex items-center gap-3">
+                  <Loader className="text-[10px]" label="Analysing the transcript" />
+                  <p className="text-muted-foreground">
+                    Analysing the transcript. This can take up to a minute.
+                  </p>
+                </div>
               ) : (
-                <p className="text-muted-foreground">{SUMMARY_PLACEHOLDERS[meeting.status]}</p>
+                <div className="space-y-3">
+                  <p className="text-muted-foreground">{SUMMARY_PLACEHOLDERS[meeting.status]}</p>
+                  {analyseError && (
+                    <p role="alert" className="text-sm text-destructive">{analyseError}</p>
+                  )}
+                  {/* Only shown when no analysis is running or finished. */}
+                  {(meeting.status === 'pending' || meeting.status === 'failed') && (
+                    <Button size="sm" onClick={handleAnalyse}>
+                      {meeting.status === 'failed' ? 'Try again' : 'Analyse meeting'}
+                    </Button>
+                  )}
+                </div>
               )}
             </section>
 

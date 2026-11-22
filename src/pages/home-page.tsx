@@ -7,7 +7,7 @@ import { RecentMeetings } from '@/components/recent-meetings'
 import { TranscriptDropzone } from '@/components/transcript-dropzone'
 import { Button } from '@/components/ui/button'
 import { SidebarTrigger } from '@/components/ui/sidebar'
-import { getRecentMeetings, type Meeting } from '@/lib/meetings'
+import { analyseMeeting, getRecentMeetings, type Meeting } from '@/lib/meetings'
 
 export function HomePage() {
   // Null until the first load finishes.
@@ -52,10 +52,18 @@ export function HomePage() {
     setDropzoneKey((key) => key + 1)
   }
 
-  function handleCreated(title: string) {
+  function handleCreated(id: string, title: string) {
     closeDialog()
-    setSavedMessage(`Saved “${title}”.`)
+    setSavedMessage(`Saved “${title}”. Analysing it now…`)
     reload()
+    // Starts the analysis straight away. The transcript is already saved, so a
+    // failure only marks the meeting "Needs retry"; its page has a retry button.
+    analyseMeeting(id)
+      .then(() => setSavedMessage(`Analysed “${title}”.`))
+      .catch((error: Error) =>
+        setSavedMessage(`Saved “${title}”, but the analysis failed: ${error.message}`),
+      )
+      .finally(reload)
   }
 
   return (
