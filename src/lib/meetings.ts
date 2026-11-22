@@ -13,6 +13,35 @@ export type Meeting = {
     openActionItems: number
 }
 
+// One decision, as the meeting view shows it.
+export type Decision = {
+    id: string
+    description: string
+}
+export type ActionItemStatus = 'todo' | 'in_progress' | 'done'
+// One action item. Owner and due date stay null when the transcript does not say.
+export type ActionItem = {
+    id: string
+    description: string
+    owner: string | null
+    dueDate: string | null // ISO date
+    status: ActionItemStatus
+    needsReview: boolean
+}
+
+// A whole meeting: details, transcript, and what was found in it.
+export type MeetingDetail = {
+    id: string
+    title: string
+    meetingDate: string
+    startTime: string | null
+    status: MeetingStatus
+    summary: string | null
+    transcript: string
+    decisions: Decision[]
+    actionItems: ActionItem[]
+}
+
 // What the new meeting form sends. The owner is filled in by the DB
 export type NewMeeting = {
     title: string
@@ -48,6 +77,56 @@ export async function getRecentMeetings(): Promise<Meeting[]> {
         status: row.analysis_status as MeetingStatus,
         openActionItems: row.action_items[0]?.count ?? 0,
     }))
+}
+
+// Returns one meeting with its decisions and action items, or null when there is
+// no such meeting. Row Level Security hides other users' meetings, so asking for
+// someone else's id also returns null: the page cannot tell it apart from a
+// meeting that does not exist.
+export async function getMeeting(id: string): Promise<MeetingDetail | null> {
+    const { data, error } = await supabase
+        .from('meetings')
+        // Embeds the related rows through their foreign keys, so one request
+        // returns the meeting, its decisions and its action items. It must stay
+        // one string: Supabase reads it to work out the types of the result.
+        .select(`
+id, title, meeting_date, start_time, analysis_status, summary, transcript,
+decisions(id, description),
+action_items(id, description, owner, due_date, status, needs_review)
+`)
+        .eq('id', id)
+        // Sorts the embedded rows: decisions in the order they were added,
+        // action items in their manual order.
+        .order('created_at', { referencedTable: 'decisions' })
+        .order('position', { referencedTable: 'action_items' })
+        // maybeSingle returns null for no row; single would return an error.
+        .maybeSingle()
+    // 22P02: the id is not a valid uuid, for example /meetings/abc. Treated as not found.
+    if (error?.code === '22P02') return null
+    if (error) throw new Error(meetingErrorMessage(error))
+    if (!data) return null
+    return {
+        id: data.id,
+        title: data.title,
+        meetingDate: data.meeting_date,
+        startTime: data.start_time,
+        status: data.analysis_status as MeetingStatus,
+        summary: data.summary,
+        transcript: data.transcript,
+        decisions: data.decisions.map((decision) => ({
+            id: decision.id,
+            description: decision.description,
+        })),
+        actionItems: data.action_items.map((item) => ({
+            id: item.id,
+            description: item.description,
+            owner: item.owner,
+            dueDate: item.due_date,
+            // The check constraint on status only allows these three values.
+            status: item.status as ActionItemStatus,
+            needsReview: item.needs_review,
+        })),
+    }
 }
 
 // Saves a new meeting and returns its id. Its analysis status starts as pending.

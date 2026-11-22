@@ -21,7 +21,10 @@ function App() {
       <Route element={<RequireAuth />}>
         <Route element={<AppLayout />}>
           <Route path="/" element={<HomePage />} />
-          <Route path="/meeting-view" element={<MeetingView />} />
+          {/* A fixed path wins over :meetingId, so "new" is never read as a meeting id.
+              The upload area lives on the homepage, so this goes there. */}
+          <Route path="/meetings/new" element={<Navigate to="/" replace />} />
+          <Route path="/meetings/:meetingId" element={<MeetingView />} />
         </Route>
       </Route>
 

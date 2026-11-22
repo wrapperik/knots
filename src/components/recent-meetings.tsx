@@ -1,4 +1,5 @@
 import { CalendarDays } from 'lucide-react'
+import { Link } from 'react-router'
 
 import { formatMeetingDate, formatStartTime, type Meeting, type MeetingStatus } from '@/lib/meetings'
 import { cn } from '@/lib/utils'
@@ -38,8 +39,8 @@ export function RecentMeetings({ meetings }: RecentMeetingsProps) {
                     const status = STATUS_LABELS[meeting.status]
                     return (
                         <li key={meeting.id}>
-                            <a
-                                href={`/meetings/${meeting.id}`}
+                            <Link
+                                to={`/meetings/${meeting.id}`}
                                 className={cn(
                                     'flex items-center gap-4 border-b p-4 transition-colors outline-none',
                                     'hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring',
@@ -69,7 +70,7 @@ export function RecentMeetings({ meetings }: RecentMeetingsProps) {
                                     <span className={cn('size-2 rounded-full', status.dotClassName)} aria-hidden="true" />
                                     {status.text}
                                 </span>
-                            </a>
+                            </Link>
                         </li>
                     )
                 })}
