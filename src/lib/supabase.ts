@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import type { Database } from './database.types'
 
 const url = import.meta.env.VITE_SUPABASE_URL
 const publishableKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY
@@ -10,4 +11,5 @@ if (!url || !publishableKey) {
 
 // The publishable key is safe in the browser: Row Level Security decides what each user can read or write.
 // The secret key bypasses Row Level Security, so it never belongs in a VITE_ variable.
-export const supabase = createClient(url, publishableKey)
+// <Database> gives every query the table and column types generated from the database.
+export const supabase = createClient<Database>(url, publishableKey)

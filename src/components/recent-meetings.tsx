@@ -29,6 +29,10 @@ export function RecentMeetings({ meetings }: RecentMeetingsProps) {
             aria-label="Search meetings"
             className="max-w-xs"/>
             </div>
+            {meetings.length === 0 ? (
+                // Empty state: no meetings yet.
+                <p className="text-muted-foreground">None, upload to get started.</p>
+            ) : (
             <ul className="space-y-2">
                 {meetings.map((meeting) => {
                     const status = STATUS_LABELS[meeting.status]
@@ -51,7 +55,8 @@ export function RecentMeetings({ meetings }: RecentMeetingsProps) {
                                         {[
                                             formatMeetingDate(meeting.meetingDate),
                                             formatStartTime(meeting.startTime),
-                                            meeting.openActionItems > 0 && `${meeting.openActionItems} open items`,
+                                            meeting.openActionItems > 0 &&
+                                                `${meeting.openActionItems} open ${meeting.openActionItems === 1 ? 'item' : 'items'}`,
                                         ]
                                             .filter(Boolean)
                                             .join(' · ')}
@@ -69,6 +74,7 @@ export function RecentMeetings({ meetings }: RecentMeetingsProps) {
                     )
                 })}
             </ul>
+            )}
         </section>
     )
 }
