@@ -5,6 +5,7 @@ import { RequireAuth, RequireGuest } from '@/components/auth/route-guards'
 import { HomePage } from '@/pages/home-page'
 import { LoginPage } from '@/pages/login-page'
 import { SignupPage } from '@/pages/signup-page'
+import { MeetingView } from '@/pages/meeting-view'
 
 // Every page in the app and who may see it.
 function App() {
@@ -20,6 +21,7 @@ function App() {
       <Route element={<RequireAuth />}>
         <Route element={<AppLayout />}>
           <Route path="/" element={<HomePage />} />
+          <Route path="/meeting-view" element={<MeetingView />} />
         </Route>
       </Route>
 
