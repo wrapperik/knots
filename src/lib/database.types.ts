@@ -101,6 +101,38 @@ isOneToOne: false
       referencedColumns: ["id","user_id"]
     }
                   ]
+                },"edit_history": {
+                  Row: {
+                    "action": string,"changed_by": string | null,"changes": NonNullable<Json>,"created_at": string,"entity_id": string,"entity_type": string,"id": string,"label": string,"meeting_id": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "action": string,"changed_by"?: string | null,"changes"?: NonNullable<Json>,"created_at"?: string,"entity_id": string,"entity_type": string,"id"?: string,"label": string,"meeting_id": string,"user_id": string
+                  }
+                  Update: {
+                    "action"?: string,"changed_by"?: string | null,"changes"?: NonNullable<Json>,"created_at"?: string,"entity_id"?: string,"entity_type"?: string,"id"?: string,"label"?: string,"meeting_id"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "edit_history_changed_by_fkey"
+      columns: ["changed_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "edit_history_meeting_id_fkey"
+      columns: ["meeting_id"]
+isOneToOne: false
+      referencedRelation: "meetings"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "edit_history_user_id_fkey"
+      columns: ["user_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"meetings": {
                   Row: {
                     "analysis_error": string | null,"analysis_status": string,"created_at": string,"file_name": string | null,"id": string,"meeting_date": string,"source": string,"start_time": string | null,"summary": string | null,"summary_edited_at": string | null,"summary_edited_by": string | null,"title": string,"transcript": string,"updated_at": string,"user_id": string

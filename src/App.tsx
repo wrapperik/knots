@@ -6,10 +6,12 @@ import { HomePage } from '@/pages/home-page'
 import { LoginPage } from '@/pages/login-page'
 import { SignupPage } from '@/pages/signup-page'
 import { MeetingView } from '@/pages/meeting-view'
+import { Toaster } from '@/components/ui/sonner'
 
 // Every page in the app and who may see it.
 function App() {
   return (
+    <>
     <Routes>
       {/* Only for visitors who are not logged in. */}
       <Route element={<RequireGuest />}>
@@ -31,6 +33,9 @@ function App() {
       {/* Any other address goes home, which sends visitors to the login page. */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+    {/* Shows toasts from any page. Outside <Routes>, so it stays while pages change. */}
+    <Toaster position="bottom-right" />
+</>
   )
 }
 
