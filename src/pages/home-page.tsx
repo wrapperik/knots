@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router'
+import { toast } from 'sonner'
 
 import { Loader } from '@/components/loader'
 import { MeetingStats } from '@/components/meeting-stats'
@@ -19,7 +21,9 @@ export function HomePage() {
   const [draft, setDraft] = useState<TranscriptDraft | null>(null)
   // Changing the key gives the dropzone a fresh start, clearing the file it shows.
   const [dropzoneKey, setDropzoneKey] = useState(0)
-  const [savedMessage, setSavedMessage] = useState<string | null>(null)
+  // Meetings this page started analysing, shown as "Analysing" straight away.
+  const [analysingIds, setAnalysingIds] = useState<string[]>([])
+  const navigate = useNavigate()
 
   useEffect(() => {
     // Ignores the result if the page unmounts before the request finishes.
@@ -43,7 +47,6 @@ export function HomePage() {
   }
 
   function openDraft(newDraft: TranscriptDraft) {
-    setSavedMessage(null)
     setDraft(newDraft)
   }
 
@@ -54,16 +57,45 @@ export function HomePage() {
 
   function handleCreated(id: string, title: string) {
     closeDialog()
-    setSavedMessage(`Saved “${title}”. Analysing it now…`)
     reload()
+    setAnalysingIds((ids) => [...ids, id])
+    // One toast that changes as the analysis goes: loading, then success or error.
+    const toastId = toast.loading(`“${title}” saved`, {
+      description: 'The AI is busy analysing the transcript. This can take up to a minute.',
+    })
+    const openMeeting = { label: 'Open', onClick: () => navigate(`/meetings/${id}`) }
+
     // Starts the analysis straight away. The transcript is already saved, so a
     // failure only marks the meeting "Needs retry"; its page has a retry button.
     analyseMeeting(id)
-      .then(() => setSavedMessage(`Analysed “${title}”.`))
-      .catch((error: Error) =>
-        setSavedMessage(`Saved “${title}”, but the analysis failed: ${error.message}`),
+      .then(() =>
+        toast.success(`“${title}” is ready`, {
+          id: toastId,
+          description: 'The summary, decisions and action items are in.',
+          action: openMeeting,
+          duration: 8000,
+        }),
       )
-      .finally(reload)
+      .catch((error: Error) =>
+        toast.error(`Could not analyse “${title}”`, {
+          id: toastId,
+          description: `${error.message} The transcript is saved.`,
+          action: openMeeting,
+          duration: 10000,
+        }),
+      )
+      .finally(() => {
+        setAnalysingIds((ids) => ids.filter((analysingId) => analysingId !== id))
+        reload()
+      })
+  }
+
+  // Meetings this page is analysing read "Analysing" even before the database
+  // has marked them as processing.
+  function withAnalysing(list: Meeting[]): Meeting[] {
+    return list.map((meeting) =>
+      analysingIds.includes(meeting.id) ? { ...meeting, status: 'processing' } : meeting,
+    )
   }
 
   return (
@@ -90,7 +122,7 @@ export function HomePage() {
       ) : (
         // The dashboard, with or without meetings: stats, upload, then the list.
         <main className="flex flex-1 flex-col gap-10 p-6 lg:p-10">
-          <MeetingStats meetings={meetings} />
+          <MeetingStats meetings={withAnalysing(meetings)} />
 
           <section aria-label="Add a meeting" className="space-y-3">
             <TranscriptDropzone
@@ -108,15 +140,10 @@ export function HomePage() {
               >
                 Or paste a transcript instead
               </button>
-              {savedMessage && (
-                <p role="status" className="text-muted-foreground">
-                  {savedMessage}
-                </p>
-              )}
             </div>
           </section>
 
-          <RecentMeetings meetings={meetings} />
+          <RecentMeetings meetings={withAnalysing(meetings)} />
         </main>
       )}
 

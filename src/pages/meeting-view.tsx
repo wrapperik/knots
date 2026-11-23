@@ -1,60 +1,20 @@
 import { useEffect, useState } from 'react'
-import {
-  CheckIcon,
-  CircleCheckIcon,
-  CircleDotIcon,
-  CircleIcon,
-  CopyIcon,
-  GavelIcon,
-  WaypointsIcon,
-} from 'lucide-react'
+import { CheckIcon, CopyIcon } from 'lucide-react'
 import { Link, useParams } from 'react-router'
 
 import { Loader } from '@/components/loader'
+import { ActionItemRow } from '@/components/meeting/action-item-row'
+import { AddActionItem } from '@/components/meeting/add-action-item'
+import { DecisionRow } from '@/components/meeting/decision-row'
+import { HistorySheet } from '@/components/meeting/history-sheet'
+import { SummaryCard } from '@/components/meeting/summary-card'
 import { Button } from '@/components/ui/button'
-import {
-  Item,
-  ItemContent,
-  ItemDescription,
-  ItemGroup,
-  ItemMedia,
-  ItemTitle,
-} from '@/components/ui/item'
+import { ItemGroup } from '@/components/ui/item'
 import { SidebarTrigger } from '@/components/ui/sidebar'
-import {
-  ResizableHandle,
-  ResizablePanel,
-  ResizablePanelGroup,
-} from '@/components/ui/resizable'
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable'
 import { Textarea } from '@/components/ui/textarea'
 import { WaveBackground } from '@/components/wave-background'
-import {
-  formatMeetingDate,
-  analyseMeeting,
-  formatStartTime,
-  getMeeting,
-  type ActionItemStatus,
-  type MeetingDetail,
-  type MeetingStatus,
-} from '@/lib/meetings'
-import { cn } from '@/lib/utils'
-
-// What the summary card says before there is a summary.
-const SUMMARY_PLACEHOLDERS: Record<MeetingStatus, string> = {
-  pending: 'Not analysed yet. The summary, decisions and action items will appear here.',
-  processing: 'Analysing the transcript…',
-  failed: 'The analysis did not finish. The transcript is saved, so it can be analysed again.',
-  done: 'No summary was produced for this meeting.',
-}
-
-// Label, icon and icon colour for each action item status.
-type StatusStyle = { text: string; icon: typeof CircleIcon; className: string }
-
-const ACTION_ITEM_STATUS: Record<ActionItemStatus, StatusStyle> = {
-  todo: { text: 'To do', icon: CircleIcon, className: 'text-muted-foreground' },
-  in_progress: { text: 'In progress', icon: CircleDotIcon, className: 'text-warning' },
-  done: { text: 'Done', icon: CircleCheckIcon, className: 'text-success' },
-}
+import { formatMeetingDate, formatStartTime, getMeeting, type MeetingDetail } from '@/lib/meetings'
 
 export function MeetingView() {
   // The id from the address, e.g. /meetings/1a2b… gives "1a2b…".
@@ -94,9 +54,7 @@ export function MeetingView() {
     <>
       <header className="flex h-14 items-center gap-2 border-b px-4">
         <SidebarTrigger />
-        <h1 className="truncate font-sans text-lg font-medium">
-          {meeting?.title ?? 'Meeting'}
-        </h1>
+        <h1 className="truncate font-sans text-lg font-medium">{meeting?.title ?? 'Meeting'}</h1>
       </header>
 
       {loadError && meeting === undefined ? (
@@ -124,38 +82,22 @@ export function MeetingView() {
           </div>
         </main>
       ) : (
-        <MeetingContent meeting={meeting} onAnalysed={() => setReloadKey((key) => key + 1)} />
+        <MeetingContent meeting={meeting} onChanged={() => setReloadKey((key) => key + 1)} />
       )}
     </>
   )
 }
 
-// The loaded meeting: summary, decisions and action items beside the transcript.
 type MeetingContentProps = {
   meeting: MeetingDetail
-  // Called after an analysis attempt, so the page reloads the meeting.
-  onAnalysed: () => void
+  // Called after any change, so the page reloads the meeting.
+  onChanged: () => void
 }
 
-function MeetingContent({ meeting, onAnalysed }: MeetingContentProps) {
+// The loaded meeting: summary, decisions and action items beside the transcript.
+function MeetingContent({ meeting, onChanged }: MeetingContentProps) {
   const [copied, setCopied] = useState(false)
   const [copyError, setCopyError] = useState(false)
-  const [analysing, setAnalysing] = useState(false)
-  const [analyseError, setAnalyseError] = useState<string | null>(null)
-
-  // Runs the analysis, then reloads the meeting to show the result or the failed status.
-  async function handleAnalyse() {
-    setAnalysing(true)
-    setAnalyseError(null)
-    try {
-      await analyseMeeting(meeting.id)
-    } catch (error) {
-      setAnalyseError((error as Error).message)
-    } finally {
-      setAnalysing(false)
-      onAnalysed()
-    }
-  }
 
   // Copies the transcript and shows "Copied" for two seconds.
   async function handleCopy() {
@@ -169,6 +111,9 @@ function MeetingContent({ meeting, onAnalysed }: MeetingContentProps) {
     }
   }
 
+  // New items go after the last one. Math.max(-1, …) makes the first item 0.
+  const nextPosition = Math.max(-1, ...meeting.actionItems.map((item) => item.position)) + 1
+
   return (
     <main className="h-[calc(100svh-3.5rem)]">
       <ResizablePanelGroup orientation="horizontal">
@@ -177,44 +122,22 @@ function MeetingContent({ meeting, onAnalysed }: MeetingContentProps) {
 
           {/* Scrolls on its own, so the waves stay fixed behind the content. */}
           <div className="relative h-full space-y-6 overflow-y-auto p-5">
-            <div>
-              <h2 className="text-lg font-bold">Summary</h2>
-              <p className="text-sm text-muted-foreground">
-                {[formatMeetingDate(meeting.meetingDate), formatStartTime(meeting.startTime)]
-                  .filter(Boolean)
-                  .join(' · ')}
-              </p>
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h2 className="text-lg font-bold">Summary</h2>
+                <p className="text-sm text-muted-foreground">
+                  {[formatMeetingDate(meeting.meetingDate), formatStartTime(meeting.startTime)]
+                    .filter(Boolean)
+                    .join(' · ')}
+                </p>
+              </div>
+              {/* Only once someone has changed something: before that, there is no history. */}
+              {meeting.historyCount > 0 && (
+                <HistorySheet meetingId={meeting.id} count={meeting.historyCount} />
+              )}
             </div>
 
-            <section className="rounded-lg border bg-white/65 p-5">
-              <h3 className="flex items-center gap-2 pb-2 font-medium">
-                <WaypointsIcon className="size-4 text-primary" aria-hidden="true" />
-                AI Overview
-              </h3>
-              {meeting.summary ? (
-                <p>{meeting.summary}</p>
-              ) : analysing ? (
-                <div className="flex items-center gap-3">
-                  <Loader className="text-[10px]" label="Analysing the transcript" />
-                  <p className="text-muted-foreground">
-                    Analysing the transcript. This can take up to a minute.
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  <p className="text-muted-foreground">{SUMMARY_PLACEHOLDERS[meeting.status]}</p>
-                  {analyseError && (
-                    <p role="alert" className="text-sm text-destructive">{analyseError}</p>
-                  )}
-                  {/* Only shown when no analysis is running or finished. */}
-                  {(meeting.status === 'pending' || meeting.status === 'failed') && (
-                    <Button size="sm" onClick={handleAnalyse}>
-                      {meeting.status === 'failed' ? 'Try again' : 'Analyse meeting'}
-                    </Button>
-                  )}
-                </div>
-              )}
-            </section>
+            <SummaryCard meeting={meeting} onChanged={onChanged} />
 
             <section aria-labelledby="decisions-heading">
               <h3 id="decisions-heading" className="flex items-center gap-2 pb-2 font-medium">
@@ -228,27 +151,14 @@ function MeetingContent({ meeting, onAnalysed }: MeetingContentProps) {
               ) : (
                 <ItemGroup className="gap-2">
                   {meeting.decisions.map((decision) => (
-                    <Item
-                      key={decision.id}
-                      role="listitem"
-                      variant="outline"
-                      size="xs"
-                      className="bg-white/95"
-                    >
-                      <ItemMedia>
-                        <GavelIcon className="size-4 text-primary" aria-hidden="true" />
-                      </ItemMedia>
-                      <ItemContent>
-                        <ItemTitle>{decision.description}</ItemTitle>
-                      </ItemContent>
-                    </Item>
+                    <DecisionRow key={decision.id} decision={decision} onChanged={onChanged} />
                   ))}
                 </ItemGroup>
               )}
             </section>
 
-            <section aria-labelledby="action-items-heading">
-              <h3 id="action-items-heading" className="flex items-center gap-2 pb-2 font-medium">
+            <section aria-labelledby="action-items-heading" className="space-y-2">
+              <h3 id="action-items-heading" className="flex items-center gap-2 font-medium">
                 Action items
                 <span className="text-xs font-normal text-muted-foreground">
                   {meeting.actionItems.length}
@@ -258,40 +168,16 @@ function MeetingContent({ meeting, onAnalysed }: MeetingContentProps) {
                 <p className="text-sm text-muted-foreground">No action items.</p>
               ) : (
                 <ItemGroup className="gap-2">
-                  {meeting.actionItems.map((item) => {
-                    const status = ACTION_ITEM_STATUS[item.status]
-                    return (
-                      <Item
-                        key={item.id}
-                        role="listitem"
-                        variant="outline"
-                        size="xs"
-                        className="bg-white/95"
-                      >
-                        <ItemMedia>
-                          <status.icon
-                            className={cn('size-4', status.className)}
-                            aria-hidden="true"
-                          />
-                        </ItemMedia>
-                        <ItemContent>
-                          <ItemTitle>{item.description}</ItemTitle>
-                          <ItemDescription className="text-xs">
-                            {[
-                              status.text,
-                              item.owner ?? 'No owner',
-                              item.dueDate ? formatMeetingDate(item.dueDate) : 'No due date',
-                            ].join(' · ')}
-                          </ItemDescription>
-                          {item.needsReview && (
-                            <p className="text-xs font-medium text-warning">Needs review</p>
-                          )}
-                        </ItemContent>
-                      </Item>
-                    )
-                  })}
+                  {meeting.actionItems.map((item) => (
+                    <ActionItemRow key={item.id} item={item} onChanged={onChanged} />
+                  ))}
                 </ItemGroup>
               )}
+              <AddActionItem
+                meetingId={meeting.id}
+                nextPosition={nextPosition}
+                onChanged={onChanged}
+              />
             </section>
           </div>
         </ResizablePanel>
@@ -311,7 +197,9 @@ function MeetingContent({ meeting, onAnalysed }: MeetingContentProps) {
                 Could not copy the transcript. Select the text and copy it manually.
               </p>
             )}
-            <label htmlFor="transcript" className="sr-only">Transcript</label>
+            <label htmlFor="transcript" className="sr-only">
+              Transcript
+            </label>
             <Textarea
               id="transcript"
               value={meeting.transcript}

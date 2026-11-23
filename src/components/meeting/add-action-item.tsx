@@ -22,10 +22,9 @@ export function AddActionItem({ meetingId, nextPosition, onChanged }: AddActionI
   if (!isAdding) {
     return (
       <Button
-        variant="ghost"
         size="sm"
         onClick={() => setIsAdding(true)}
-        className="text-muted-foreground"
+        className="text-black bg-white/60 hover:text-white"
       >
         <PlusIcon />
         Add action item
