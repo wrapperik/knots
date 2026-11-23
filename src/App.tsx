@@ -6,6 +6,7 @@ import { HomePage } from '@/pages/home-page'
 import { LoginPage } from '@/pages/login-page'
 import { SignupPage } from '@/pages/signup-page'
 import { MeetingView } from '@/pages/meeting-view'
+import { ActionItemsPage } from '@/pages/action-items-page'
 import { Toaster } from '@/components/ui/sonner'
 
 // Every page in the app and who may see it.
@@ -27,6 +28,7 @@ function App() {
               The upload area lives on the homepage, so this goes there. */}
           <Route path="/meetings/new" element={<Navigate to="/" replace />} />
           <Route path="/meetings/:meetingId" element={<MeetingView />} />
+          <Route path="/action-items" element={<ActionItemsPage />} />
         </Route>
       </Route>
 

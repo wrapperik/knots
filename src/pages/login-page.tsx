@@ -57,6 +57,7 @@ export function LoginPage() {
   }
 
   return (
+    
     <AuthLayout
       title="Log in"
       description="Welcome back. Pick up where you left off."

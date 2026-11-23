@@ -24,7 +24,7 @@ type NavItem = {
 // Navigation links, kept as data so each page is one entry.
 const workspaceItems: NavItem[] = [
   { title: 'Meetings', url: '/', icon: CalendarDays },
-  { title: 'My open items', url: '/action-items', icon: ListChecks },
+  { title: 'My action items', url: '/action-items', icon: ListChecks },
   { title: 'New meeting', url: '/meetings/new', icon: Plus },
 ]
 

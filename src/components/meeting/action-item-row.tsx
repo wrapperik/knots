@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { CircleCheckIcon, CircleDotIcon, CircleIcon, PencilIcon } from 'lucide-react'
+import { ArrowRightIcon, CircleCheckIcon, CircleDotIcon, CircleIcon, PencilIcon } from 'lucide-react'
+import { Link } from 'react-router'
 import { toast } from 'sonner'
 
 import { ActionItemForm } from '@/components/meeting/action-item-form'
@@ -12,8 +13,8 @@ import {
   ItemMedia,
   ItemTitle,
 } from '@/components/ui/item'
+import { isOverdue as checkOverdue, NEXT_STATUS } from '@/lib/action-items'
 import { deleteActionItem, setActionItemStatus, updateActionItem } from '@/lib/meeting-edits'
-import { todayIsoDate } from '@/lib/meeting-validation'
 import { formatMeetingDate, type ActionItem, type ActionItemStatus } from '@/lib/meetings'
 import { cn } from '@/lib/utils'
 
@@ -26,14 +27,31 @@ const STATUS_STYLES: Record<ActionItemStatus, StatusStyle> = {
   done: { text: 'Done', icon: CircleCheckIcon, className: 'text-success' },
 }
 
+// The toast shown after a status change, by the status the item moved to.
+const STATUS_TOASTS: Record<ActionItemStatus, string> = {
+  todo: 'Moved back to to do',
+  in_progress: 'Moved to in progress',
+  done: 'Ticked off',
+}
+
+// The move button's label, by the status the item is in now.
+const MOVE_LABELS: Record<keyof typeof NEXT_STATUS, string> = {
+  todo: 'Start',
+  in_progress: 'Done',
+}
+
 type ActionItemRowProps = {
   item: ActionItem
   // Called after any change, so the page reloads the meeting.
   onChanged: () => void
+  // Shown as a link under the item, on pages that list items from several meetings.
+  meeting?: { id: string; title: string }
+  // Shows a button that moves the item to the next status, for the board.
+  showMoveButton?: boolean
 }
 
 // One action item: tick it off with the circle, or edit it with the pencil.
-export function ActionItemRow({ item, onChanged }: ActionItemRowProps) {
+export function ActionItemRow({ item, onChanged, meeting, showMoveButton = false }: ActionItemRowProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [isToggling, setIsToggling] = useState(false)
   const editButtonRef = useRef<HTMLButtonElement>(null)
@@ -52,17 +70,17 @@ export function ActionItemRow({ item, onChanged }: ActionItemRowProps) {
     setIsEditing(false)
   }
 
-  async function handleToggle() {
+  // Saves a new status, with a toast that offers Undo.
+  async function changeStatus(next: ActionItemStatus) {
     const previous = item.status
-    const next: ActionItemStatus = previous === 'done' ? 'todo' : 'done'
     setIsToggling(true)
     try {
       await setActionItemStatus(item.id, next)
-      toast.success(next === 'done' ? 'Ticked off' : 'Moved back to to do', {
+      toast.success(STATUS_TOASTS[next], {
         description: item.description,
         // Longer than the default 4 seconds, so there is time to reach Undo.
         duration: 8000,
-        // Ticking the wrong item is an easy slip, so the toast offers a way back.
+        // Moving the wrong item is an easy slip, so the toast offers a way back.
         action: {
           label: 'Undo',
           onClick: () =>
@@ -77,6 +95,11 @@ export function ActionItemRow({ item, onChanged }: ActionItemRowProps) {
     } finally {
       setIsToggling(false)
     }
+  }
+
+  // The circle ticks an item off from any status, or reopens a done one.
+  function handleToggle() {
+    changeStatus(item.status === 'done' ? 'todo' : 'done')
   }
 
   if (isEditing) {
@@ -105,7 +128,13 @@ export function ActionItemRow({ item, onChanged }: ActionItemRowProps) {
   const status = STATUS_STYLES[item.status]
   const isDone = item.status === 'done'
   // Open and due before today. Worked out when shown, never stored.
-  const isOverdue = !isDone && item.dueDate !== null && item.dueDate < todayIsoDate()
+  const isOverdue = checkOverdue(item)
+  // Where the move button sends the item, and what it says. Done items have no next step.
+  // Checking for 'done' first lets TypeScript know the status is a key of NEXT_STATUS.
+  const move =
+    item.status === 'done'
+      ? null
+      : { to: NEXT_STATUS[item.status], label: MOVE_LABELS[item.status] }
 
   return (
     <Item role="listitem" variant="outline" size="xs" className="bg-white/95">
@@ -127,7 +156,8 @@ export function ActionItemRow({ item, onChanged }: ActionItemRowProps) {
         <ItemTitle className={cn(isDone && 'text-muted-foreground line-through')}>
           {item.description}
         </ItemTitle>
-        <ItemDescription className="text-xs">
+        {/* line-clamp-none: the overdue warning must never be cut off on narrow screens. */}
+        <ItemDescription className="line-clamp-none text-xs">
           {status.text} · {item.owner ?? 'No owner'} ·{' '}
           <span className={cn(isOverdue && 'font-medium text-destructive')}>
             {item.dueDate ? formatMeetingDate(item.dueDate) : 'No due date'}
@@ -136,8 +166,28 @@ export function ActionItemRow({ item, onChanged }: ActionItemRowProps) {
           {item.editedAt && ' · Edited'}
         </ItemDescription>
         {item.needsReview && <p className="text-xs font-medium text-warning">Needs review</p>}
+        {meeting && (
+          <Link
+            to={`/meetings/${meeting.id}`}
+            className="w-fit text-xs text-muted-foreground underline underline-offset-4 hover:text-foreground"
+          >
+            {meeting.title}
+          </Link>
+        )}
       </ItemContent>
       <ItemActions>
+        {showMoveButton && move && (
+          <Button
+            variant="outline"
+            size="xs"
+            onClick={() => changeStatus(move.to)}
+            disabled={isToggling}
+            aria-label={`Move “${item.description}” to ${STATUS_STYLES[move.to].text.toLowerCase()}`}
+          >
+            {move.label}
+            <ArrowRightIcon aria-hidden="true" />
+          </Button>
+        )}
         <Button
           ref={editButtonRef}
           variant="ghost"
