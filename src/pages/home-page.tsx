@@ -9,7 +9,7 @@ import { RecentMeetings } from '@/components/recent-meetings'
 import { TranscriptDropzone } from '@/components/transcript-dropzone'
 import { Button } from '@/components/ui/button'
 import { SidebarTrigger } from '@/components/ui/sidebar'
-import { analyseMeeting, getRecentMeetings, type Meeting } from '@/lib/meetings'
+import { analyseMeeting, getMeetings, type Meeting } from '@/lib/meetings'
 
 export function HomePage() {
   // Null until the first load finishes.
@@ -28,7 +28,7 @@ export function HomePage() {
   useEffect(() => {
     // Ignores the result if the page unmounts before the request finishes.
     let ignore = false
-    getRecentMeetings()
+    getMeetings()
       .then((result) => {
         if (ignore) return
         setMeetings(result)
@@ -44,6 +44,13 @@ export function HomePage() {
 
   function reload() {
     setReloadKey((key) => key + 1)
+  }
+
+  // Applies a change to one meeting in the list, without loading it again.
+  function changeMeeting(id: string, changes: Partial<Meeting>) {
+    setMeetings((current) =>
+      current?.map((meeting) => (meeting.id === id ? { ...meeting, ...changes } : meeting)) ?? null,
+    )
   }
 
   function openDraft(newDraft: TranscriptDraft) {
@@ -122,7 +129,10 @@ export function HomePage() {
       ) : (
         // The dashboard, with or without meetings: stats, upload, then the list.
         <main className="flex flex-1 flex-col gap-10 p-6 lg:p-10">
-          <MeetingStats meetings={withAnalysing(meetings)} />
+          {/* Archived meetings are left out of the numbers. */}
+          <MeetingStats
+            meetings={withAnalysing(meetings.filter((meeting) => !meeting.archivedAt))}
+          />
 
           <section aria-label="Add a meeting" className="space-y-3">
             <TranscriptDropzone
@@ -143,7 +153,11 @@ export function HomePage() {
             </div>
           </section>
 
-          <RecentMeetings meetings={withAnalysing(meetings)} />
+          <RecentMeetings
+            meetings={withAnalysing(meetings)}
+            onMeetingChange={changeMeeting}
+            onReload={reload}
+          />
         </main>
       )}
 

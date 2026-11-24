@@ -11,6 +11,15 @@ export type Meeting = {
     startTime: string | null; // 24h time (Null when unknown)
     status: MeetingStatus;
     openActionItems: number;
+    isStarred: boolean;
+    archivedAt: string | null; // Null while the meeting is active.
+};
+
+// The details the edit dialog can change.
+export type MeetingDetails = {
+    title: string;
+    meetingDate: string;
+    startTime: string | null;
 };
 
 // One decision, as the meeting view shows it.
@@ -57,22 +66,23 @@ export type NewMeeting = {
     fileName: string | null;
 };
 
-// Returns the signed-in user's most recent meetings, newest first.
-// No user_id filter: Row Level Security already limits the rows to this user,
-// and later to meetings shared with them.
-export async function getRecentMeetings(): Promise<Meeting[]> {
+// Returns all of the signed-in user's meetings, archived ones included:
+// starred first, then newest first. The list is filtered and searched in the
+// browser, so all of it is loaded. Fine for hundreds of meetings, not thousands.
+// No user_id filter: Row Level Security already limits the rows to this user.
+export async function getMeetings(): Promise<Meeting[]> {
     const { data, error } = await supabase
         .from("meetings")
         // action_items(count) asks for a count of each meeting's items instead
         // of the items themselves. The transcript is left out on purpose.
         .select(
-            "id, title, meeting_date, start_time, analysis_status, action_items(count)",
+            "id, title, meeting_date, start_time, analysis_status, is_starred, archived_at, action_items(count)",
         )
         // Only count items that are not done.
         .neq("action_items.status", "done")
+        .order("is_starred", { ascending: false })
         .order("meeting_date", { ascending: false })
-        .order("created_at", { ascending: false })
-        .limit(20);
+        .order("created_at", { ascending: false });
     if (error) throw new Error(meetingErrorMessage(error));
     // Turn database rows (snake_case) into the shape the UI uses (camelCase).
     return data.map((row) => ({
@@ -83,7 +93,51 @@ export async function getRecentMeetings(): Promise<Meeting[]> {
         // The check constraint on analysis_status only allows these four values.
         status: row.analysis_status as MeetingStatus,
         openActionItems: row.action_items[0]?.count ?? 0,
+        isStarred: row.is_starred,
+        archivedAt: row.archived_at,
     }));
+}
+
+// Saves a meeting's title, date and start time.
+// .select("id").single() turns "no row changed" into an error, because RLS
+// matches nothing rather than failing when the meeting is not yours.
+export async function updateMeetingDetails(id: string, details: MeetingDetails): Promise<void> {
+    const { error } = await supabase
+        .from("meetings")
+        .update({
+            title: details.title.trim(),
+            meeting_date: details.meetingDate,
+            start_time: details.startTime,
+        })
+        .eq("id", id)
+        .select("id")
+        .single();
+    if (error) throw new Error(meetingErrorMessage(error));
+}
+
+// Stars or unstars a meeting.
+export async function setMeetingStarred(id: string, isStarred: boolean): Promise<void> {
+    const { error } = await supabase
+        .from("meetings")
+        .update({ is_starred: isStarred })
+        .eq("id", id)
+        .select("id")
+        .single();
+    if (error) throw new Error(meetingErrorMessage(error));
+}
+
+// Archives a meeting, or restores it when isArchived is false. Returns the
+// timestamp that was saved, so the list can show it straight away.
+export async function setMeetingArchived(id: string, isArchived: boolean): Promise<string | null> {
+    const archivedAt = isArchived ? new Date().toISOString() : null;
+    const { error } = await supabase
+        .from("meetings")
+        .update({ archived_at: archivedAt })
+        .eq("id", id)
+        .select("id")
+        .single();
+    if (error) throw new Error(meetingErrorMessage(error));
+    return archivedAt;
 }
 
 // Returns one meeting with its decisions and action items, or null when there is

@@ -135,14 +135,14 @@ isOneToOne: false
                   ]
                 },"meetings": {
                   Row: {
-                    "analysis_error": string | null,"analysis_status": string,"created_at": string,"file_name": string | null,"id": string,"meeting_date": string,"source": string,"start_time": string | null,"summary": string | null,"summary_edited_at": string | null,"summary_edited_by": string | null,"title": string,"transcript": string,"updated_at": string,"user_id": string
+                    "analysis_error": string | null,"analysis_status": string,"archived_at": string | null,"created_at": string,"file_name": string | null,"id": string,"is_starred": boolean,"meeting_date": string,"source": string,"start_time": string | null,"summary": string | null,"summary_edited_at": string | null,"summary_edited_by": string | null,"title": string,"transcript": string,"updated_at": string,"user_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "analysis_error"?: string | null,"analysis_status"?: string,"created_at"?: string,"file_name"?: string | null,"id"?: string,"meeting_date"?: string,"source"?: string,"start_time"?: string | null,"summary"?: string | null,"summary_edited_at"?: string | null,"summary_edited_by"?: string | null,"title": string,"transcript": string,"updated_at"?: string,"user_id"?: string
+                    "analysis_error"?: string | null,"analysis_status"?: string,"archived_at"?: string | null,"created_at"?: string,"file_name"?: string | null,"id"?: string,"is_starred"?: boolean,"meeting_date"?: string,"source"?: string,"start_time"?: string | null,"summary"?: string | null,"summary_edited_at"?: string | null,"summary_edited_by"?: string | null,"title": string,"transcript": string,"updated_at"?: string,"user_id"?: string
                   }
                   Update: {
-                    "analysis_error"?: string | null,"analysis_status"?: string,"created_at"?: string,"file_name"?: string | null,"id"?: string,"meeting_date"?: string,"source"?: string,"start_time"?: string | null,"summary"?: string | null,"summary_edited_at"?: string | null,"summary_edited_by"?: string | null,"title"?: string,"transcript"?: string,"updated_at"?: string,"user_id"?: string
+                    "analysis_error"?: string | null,"analysis_status"?: string,"archived_at"?: string | null,"created_at"?: string,"file_name"?: string | null,"id"?: string,"is_starred"?: boolean,"meeting_date"?: string,"source"?: string,"start_time"?: string | null,"summary"?: string | null,"summary_edited_at"?: string | null,"summary_edited_by"?: string | null,"title"?: string,"transcript"?: string,"updated_at"?: string,"user_id"?: string
                   }
                   Relationships: [
                     {

@@ -40,8 +40,11 @@ export async function getBoardActionItems(): Promise<BoardActionItem[]> {
   const { data, error } = await supabase
     .from('action_items')
     .select(
-      'id, description, owner, due_date, status, needs_review, position, edited_at, completed_at, meetings(id, title, meeting_date)',
+      'id, description, owner, due_date, status, needs_review, position, edited_at, completed_at, meetings!inner(id, title, meeting_date)',
     )
+    // Items from archived meetings stay off the board. !inner above makes this
+    // filter drop the item, not just leave its meeting empty.
+    .is('meetings.archived_at', null)
     // Not done, or done recently. or() takes PostgREST's filter syntax.
     .or(`status.neq.done,completed_at.gte.${doneSince}`)
     .order('due_date', { ascending: true, nullsFirst: false })
