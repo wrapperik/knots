@@ -179,7 +179,10 @@ isOneToOne: false
             [_ in never]: never
           }
           Functions: {
-            "is_active_user":
+            "delete_my_account":
+{ Args: Record<PropertyKey, never>; Returns: undefined
+                           },
+"is_active_user":
 { Args: Record<PropertyKey, never>; Returns: boolean
                            },
 "save_analysis":

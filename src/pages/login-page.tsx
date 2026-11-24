@@ -1,9 +1,11 @@
 import { useRef, useState, type FormEvent } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router'
+import { toast } from 'sonner'
 
 import { AuthLayout } from '@/components/auth/auth-layout'
 import { FormField } from '@/components/auth/form-field'
 import { Button } from '@/components/ui/button'
+import { isAccountDeleted } from '@/lib/account'
 import { authErrorMessage, validateEmail, type FieldErrors } from '@/lib/auth-validation'
 import { supabase } from '@/lib/supabase'
 
@@ -39,15 +41,28 @@ export function LoginPage() {
     submittingRef.current = true
     setIsSubmitting(true)
 
-    const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password })
-
-    submittingRef.current = false
-    setIsSubmitting(false)
+    const { data, error } = await supabase.auth.signInWithPassword({ email: email.trim(), password })
 
     if (error) {
+      submittingRef.current = false
+      setIsSubmitting(false)
       setFormError(authErrorMessage(error))
       return
     }
+
+    // A deleted account can still log in, so turn it away here. The toast is
+    // used as well because the guard may already have left this page.
+    if (await isAccountDeleted(data.user.id)) {
+      await supabase.auth.signOut()
+      submittingRef.current = false
+      setIsSubmitting(false)
+      setFormError('This account has been deleted.')
+      toast.error('This account has been deleted.')
+      return
+    }
+
+    submittingRef.current = false
+    setIsSubmitting(false)
     navigate(from, { replace: true })
   }
 

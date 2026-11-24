@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from 'react-router'
 
 import { AppLayout } from '@/components/app-layout'
 import { RequireAuth, RequireGuest } from '@/components/auth/route-guards'
+import { AccountPage } from '@/pages/account-page'
 import { HomePage } from '@/pages/home-page'
 import { LoginPage } from '@/pages/login-page'
 import { SignupPage } from '@/pages/signup-page'
@@ -29,6 +30,7 @@ function App() {
           <Route path="/meetings/new" element={<Navigate to="/" replace />} />
           <Route path="/meetings/:meetingId" element={<MeetingView />} />
           <Route path="/action-items" element={<ActionItemsPage />} />
+          <Route path="/account" element={<AccountPage />} />
         </Route>
       </Route>
 
