@@ -8,6 +8,13 @@ import { AddActionItem } from '@/components/meeting/add-action-item'
 import { DecisionRow } from '@/components/meeting/decision-row'
 import { HistorySheet } from '@/components/meeting/history-sheet'
 import { SummaryCard } from '@/components/meeting/summary-card'
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb'
 import { Button } from '@/components/ui/button'
 import { ItemGroup } from '@/components/ui/item'
 import { SidebarTrigger } from '@/components/ui/sidebar'
@@ -54,7 +61,25 @@ export function MeetingView() {
     <>
       <header className="flex h-14 items-center gap-2 border-b px-4">
         <SidebarTrigger />
-        <h1 className="truncate font-sans text-lg font-medium">{meeting?.title ?? 'Meeting'}</h1>
+        {/* Meetings > title. flex-nowrap and min-w-0 keep it on one line, so a
+            long title is cut short with an ellipsis instead of wrapping. */}
+        <Breadcrumb className="min-w-0">
+          <BreadcrumbList className="flex-nowrap text-lg">
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link to="/">Meetings</Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem className="min-w-0">
+              {/* Still the page's h1, so screen readers find the title as the
+                  main heading. aria-current marks it as the page being viewed. */}
+              <h1 aria-current="page" className="truncate font-sans text-lg font-medium text-foreground">
+                {meeting?.title ?? 'Meeting'}
+              </h1>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
       </header>
 
       {loadError && meeting === undefined ? (
