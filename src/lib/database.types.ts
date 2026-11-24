@@ -25,17 +25,23 @@ export type Database = {
           Tables: {
             "action_items": {
                   Row: {
-                    "completed_at": string | null,"created_at": string,"created_by": string,"description": string,"due_date": string | null,"edited_at": string | null,"edited_by": string | null,"id": string,"meeting_id": string,"needs_review": boolean,"owner": string | null,"position": number,"priority": string | null,"source_quote": string | null,"status": string,"updated_at": string,"user_id": string
+                    "assignee_id": string | null,"completed_at": string | null,"created_at": string,"created_by": string,"description": string,"due_date": string | null,"edited_at": string | null,"edited_by": string | null,"id": string,"meeting_id": string,"needs_review": boolean,"owner": string | null,"position": number,"priority": string | null,"source_quote": string | null,"status": string,"updated_at": string,"user_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "completed_at"?: string | null,"created_at"?: string,"created_by"?: string,"description": string,"due_date"?: string | null,"edited_at"?: string | null,"edited_by"?: string | null,"id"?: string,"meeting_id": string,"needs_review"?: boolean,"owner"?: string | null,"position"?: number,"priority"?: string | null,"source_quote"?: string | null,"status"?: string,"updated_at"?: string,"user_id"?: string
+                    "assignee_id"?: string | null,"completed_at"?: string | null,"created_at"?: string,"created_by"?: string,"description": string,"due_date"?: string | null,"edited_at"?: string | null,"edited_by"?: string | null,"id"?: string,"meeting_id": string,"needs_review"?: boolean,"owner"?: string | null,"position"?: number,"priority"?: string | null,"source_quote"?: string | null,"status"?: string,"updated_at"?: string,"user_id"?: string
                   }
                   Update: {
-                    "completed_at"?: string | null,"created_at"?: string,"created_by"?: string,"description"?: string,"due_date"?: string | null,"edited_at"?: string | null,"edited_by"?: string | null,"id"?: string,"meeting_id"?: string,"needs_review"?: boolean,"owner"?: string | null,"position"?: number,"priority"?: string | null,"source_quote"?: string | null,"status"?: string,"updated_at"?: string,"user_id"?: string
+                    "assignee_id"?: string | null,"completed_at"?: string | null,"created_at"?: string,"created_by"?: string,"description"?: string,"due_date"?: string | null,"edited_at"?: string | null,"edited_by"?: string | null,"id"?: string,"meeting_id"?: string,"needs_review"?: boolean,"owner"?: string | null,"position"?: number,"priority"?: string | null,"source_quote"?: string | null,"status"?: string,"updated_at"?: string,"user_id"?: string
                   }
                   Relationships: [
                     {
+      foreignKeyName: "action_items_assignee_id_fkey"
+      columns: ["assignee_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
       foreignKeyName: "action_items_edited_by_fkey"
       columns: ["edited_by"]
 isOneToOne: false

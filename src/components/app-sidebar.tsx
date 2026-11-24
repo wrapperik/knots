@@ -1,4 +1,4 @@
-import { CalendarDays, ListChecks, LogOut, Plus, UserRound, type LucideIcon } from 'lucide-react'
+import { CalendarDays, ListChecks, LogOut, UserRound, type LucideIcon } from 'lucide-react'
 import { Link, useLocation, useNavigate } from 'react-router'
 
 import {
@@ -25,7 +25,6 @@ type NavItem = {
 const workspaceItems: NavItem[] = [
   { title: 'Meetings', url: '/', icon: CalendarDays },
   { title: 'My action items', url: '/action-items', icon: ListChecks },
-  { title: 'New meeting', url: '/meetings/new', icon: Plus },
 ]
 
 const accountItems: NavItem[] = [

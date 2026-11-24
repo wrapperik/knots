@@ -48,6 +48,20 @@ export async function setActionItemStatus(
         .single();
     if (error) throw new Error(editErrorMessage(error));
 }
+// Assigns an item to a user, or clears the assignee with null. The database
+// only accepts the meeting's owner, so this cannot assign anyone else.
+export async function setActionItemAssignee(
+    id: string,
+    assigneeId: string | null,
+): Promise<void> {
+    const { error } = await supabase
+        .from("action_items")
+        .update({ assignee_id: assigneeId })
+        .eq("id", id)
+        .select("id")
+        .single();
+    if (error) throw new Error(editErrorMessage(error));
+}
 // Adds an item at the end of the list.
 export async function createActionItem(
     meetingId: string,

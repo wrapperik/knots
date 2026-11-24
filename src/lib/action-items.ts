@@ -40,7 +40,7 @@ export async function getBoardActionItems(): Promise<BoardActionItem[]> {
   const { data, error } = await supabase
     .from('action_items')
     .select(
-      'id, description, owner, due_date, status, needs_review, position, edited_at, completed_at, meetings!inner(id, title, meeting_date)',
+      'id, description, owner, due_date, status, needs_review, assignee_id, position, edited_at, completed_at, meetings!inner(id, title, meeting_date)',
     )
     // Items from archived meetings stay off the board. !inner above makes this
     // filter drop the item, not just leave its meeting empty.
@@ -59,6 +59,7 @@ export async function getBoardActionItems(): Promise<BoardActionItem[]> {
     // The check constraint on status only allows these three values.
     status: row.status as ActionItemStatus,
     needsReview: row.needs_review,
+    assigneeId: row.assignee_id,
     position: row.position,
     editedAt: row.edited_at,
     completedAt: row.completed_at,

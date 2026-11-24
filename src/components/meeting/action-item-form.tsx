@@ -2,6 +2,13 @@ import { useEffect, useId, useRef, useState, type FormEvent, type KeyboardEvent 
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import {
   MAX_DESCRIPTION_LENGTH,
@@ -18,12 +25,6 @@ type ActionItemFormProps = {
   // Only passed when editing: a new item has nothing to delete.
   onDelete?: () => Promise<void>
 }
-
-// Styled like the shadcn Input, for the native status dropdown.
-const selectClassName = cn(
-  'h-9 w-full rounded-md border border-input bg-white px-3 text-sm shadow-xs outline-none',
-  'focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50',
-)
 
 // The fields of one action item: what, who, when and status.
 export function ActionItemForm({
@@ -99,6 +100,9 @@ export function ActionItemForm({
 
   // Escape cancels from any field; Ctrl+Enter saves from any field.
   function handleKeyDown(event: KeyboardEvent<HTMLFormElement>) {
+    // An open status menu handles Escape itself and marks it as handled. Without
+    // this check, closing the menu would also close the form.
+    if (event.defaultPrevented) return
     if (event.key === 'Escape') onCancel()
     if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) handleSubmit()
   }
@@ -154,16 +158,20 @@ export function ActionItemForm({
           <label htmlFor={ids.status} className="text-xs font-medium">
             Status
           </label>
-          <select
-            id={ids.status}
+          {/* The menu only offers these three values, so the cast is safe. */}
+          <Select
             value={status}
-            onChange={(event) => setStatus(event.target.value as ActionItemFields['status'])}
-            className={selectClassName}
+            onValueChange={(value) => setStatus(value as ActionItemFields['status'])}
           >
-            <option value="todo">To do</option>
-            <option value="in_progress">In progress</option>
-            <option value="done">Done</option>
-          </select>
+            <SelectTrigger id={ids.status} className="w-full bg-white">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todo">To do</SelectItem>
+              <SelectItem value="in_progress">In progress</SelectItem>
+              <SelectItem value="done">Done</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 

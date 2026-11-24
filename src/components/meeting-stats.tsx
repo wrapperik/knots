@@ -41,7 +41,7 @@ export function MeetingStats({ meetings }: MeetingStatsProps) {
         <div
           key={stat.label}
           className={cn(
-            'space-y-2 rounded-xl border bg-card p-4',
+            'space-y-2 rounded-lg border bg-card p-4',
             stat.isHighlight && 'border-primary bg-primary text-primary-foreground',
           )}
         >

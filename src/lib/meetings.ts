@@ -37,6 +37,8 @@ export type ActionItem = {
     dueDate: string | null; // ISO date
     status: ActionItemStatus;
     needsReview: boolean;
+    // The Knots user who claimed the item; null when nobody has.
+    assigneeId: string | null;
     position: number;
     editedAt: string | null;
 };
@@ -153,7 +155,7 @@ export async function getMeeting(id: string): Promise<MeetingDetail | null> {
         .select(`
 id, title, meeting_date, start_time, analysis_status, summary, summary_edited_at, transcript,
 decisions(id, description, edited_at),
-action_items(id, description, owner, due_date, status, needs_review, position, edited_at),
+action_items(id, description, owner, due_date, status, needs_review, assignee_id, position, edited_at),
 edit_history(count)
 `)
         .eq("id", id)
@@ -189,6 +191,7 @@ edit_history(count)
             // The check constraint on status only allows these three values.
             status: item.status as ActionItemStatus,
             needsReview: item.needs_review,
+            assigneeId: item.assignee_id,
             position: item.position,
             editedAt: item.edited_at,
         })),
