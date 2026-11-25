@@ -3,17 +3,19 @@ import { Link, useNavigate } from 'react-router'
 
 import { AuthLayout } from '@/components/auth/auth-layout'
 import { FormField } from '@/components/auth/form-field'
+import { PasswordField } from '@/components/auth/password-field'
 import { Button } from '@/components/ui/button'
 import {
   authErrorMessage,
   validateDisplayName,
   validateEmail,
   validateNewPassword,
+  validatePasswordConfirmation,
   type FieldErrors,
 } from '@/lib/auth-validation'
 import { supabase } from '@/lib/supabase'
 
-type Field = 'name' | 'email' | 'password'
+type Field = 'name' | 'email' | 'password' | 'confirmPassword'
 
 export function SignupPage() {
   const navigate = useNavigate()
@@ -21,6 +23,7 @@ export function SignupPage() {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [errors, setErrors] = useState<FieldErrors<Field>>({})
   const [formError, setFormError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -36,10 +39,11 @@ export function SignupPage() {
       name: validateDisplayName(name),
       email: validateEmail(email),
       password: validateNewPassword(password),
+      confirmPassword: validatePasswordConfirmation(password, confirmPassword),
     }
     setErrors(newErrors)
     setFormError(null)
-    if (newErrors.name || newErrors.email || newErrors.password) return
+    if (Object.values(newErrors).some(Boolean)) return
 
     submittingRef.current = true
     setIsSubmitting(true)
@@ -131,9 +135,8 @@ export function SignupPage() {
             clearError('email')
           }}
         />
-        <FormField
+        <PasswordField
           label="Password"
-          type="password"
           autoComplete="new-password"
           value={password}
           error={errors.password}
@@ -141,6 +144,16 @@ export function SignupPage() {
           onChange={(event) => {
             setPassword(event.target.value)
             clearError('password')
+          }}
+        />
+        <PasswordField
+          label="Confirm password"
+          autoComplete="new-password"
+          value={confirmPassword}
+          error={errors.confirmPassword}
+          onChange={(event) => {
+            setConfirmPassword(event.target.value)
+            clearError('confirmPassword')
           }}
         />
 

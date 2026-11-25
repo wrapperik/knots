@@ -20,6 +20,16 @@ export function validateNewPassword(password: string): string | undefined {
     }
 }
 
+// The second password box on sign-up. Only checked in the browser: the server
+// receives one password, and its own rules still apply to that.
+export function validatePasswordConfirmation(
+    password: string,
+    confirmation: string,
+): string | undefined {
+    if (!confirmation) return 'Enter your password again.'
+    if (confirmation !== password) return 'The passwords do not match.'
+}
+
 export function validateDisplayName(name: string): string | undefined {
     if (!name.trim()) return 'Enter your name.'
     if (name.trim().length > 100) return 'Keep your name under 100 characters.'

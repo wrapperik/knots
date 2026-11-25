@@ -4,6 +4,7 @@ import { toast } from 'sonner'
 
 import { AuthLayout } from '@/components/auth/auth-layout'
 import { FormField } from '@/components/auth/form-field'
+import { PasswordField } from '@/components/auth/password-field'
 import { Button } from '@/components/ui/button'
 import { isAccountDeleted } from '@/lib/account'
 import { authErrorMessage, validateEmail, type FieldErrors } from '@/lib/auth-validation'
@@ -104,9 +105,8 @@ export function LoginPage() {
             clearError('email')
           }}
         />
-        <FormField
+        <PasswordField
           label="Password"
-          type="password"
           autoComplete="current-password"
           value={password}
           error={errors.password}

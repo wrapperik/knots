@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router'
 import { toast } from 'sonner'
 
 import { FormField } from '@/components/auth/form-field'
+import { PasswordField } from '@/components/auth/password-field'
 import { Loader } from '@/components/loader'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -205,9 +206,8 @@ function DeleteCard({ email }: { email: string }) {
                 confirm.
               </DialogDescription>
             </DialogHeader>
-            <FormField
+            <PasswordField
               label="Password"
-              type="password"
               autoComplete="current-password"
               value={password}
               error={error}
