@@ -81,6 +81,26 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"calendar_feeds": {
+                  Row: {
+                    "created_at": string,"token_hash": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"token_hash": string,"user_id"?: string
+                  }
+                  Update: {
+                    "created_at"?: string,"token_hash"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "calendar_feeds_user_id_fkey"
+      columns: ["user_id"]
+isOneToOne: true
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"decisions": {
                   Row: {
                     "created_at": string,"created_by": string,"description": string,"edited_at": string | null,"edited_by": string | null,"id": string,"meeting_id": string,"source_quote": string | null,"updated_at": string,"user_id": string
@@ -185,7 +205,18 @@ isOneToOne: false
             [_ in never]: never
           }
           Functions: {
-            "delete_my_account":
+            "calendar_feed_items":
+{ Args: { "p_token": string }; Returns: {
+              "description": string,"due_date": string,"id": string,"meeting_title": string,"owner": string,"status": string,"updated_at": string
+            }[]
+                           },
+"create_calendar_feed":
+{ Args: Record<PropertyKey, never>; Returns: string
+                           },
+"delete_calendar_feed":
+{ Args: Record<PropertyKey, never>; Returns: undefined
+                           },
+"delete_my_account":
 { Args: Record<PropertyKey, never>; Returns: undefined
                            },
 "is_active_user":
