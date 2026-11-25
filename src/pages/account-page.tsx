@@ -4,6 +4,7 @@ import { toast } from 'sonner'
 
 import { FormField } from '@/components/auth/form-field'
 import { PasswordField } from '@/components/auth/password-field'
+import { CalendarFeedCard } from '@/components/calendar-feed-card'
 import { Loader } from '@/components/loader'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -36,6 +37,7 @@ export function AccountPage() {
       <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 p-6 lg:p-10">
         <NameCard userId={user.id} />
         <EmailCard email={user.email ?? ''} />
+        <CalendarFeedCard />
         <DeleteCard email={user.email ?? ''} />
       </main>
     </>
