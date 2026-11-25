@@ -1,6 +1,6 @@
-# Knots
+![Knots: every decision, knotted down.](docs/readme-banner.png)
 
-**Every decision, knotted down.**
+# Knots
 
 Knots turns a meeting transcript into something a team can act on. Paste or upload a transcript and Knots returns a short summary, the decisions that were made and the action items, each with an owner and a due date when the transcript gives one. Everything the AI produces can then be edited, assigned, tracked across meetings and ticked off.
 
