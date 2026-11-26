@@ -24,6 +24,7 @@ The name comes from the Inca *quipu*: knotted cords used to record information.
 - [With another week](#with-another-week)
 - [Deploying](#deploying)
 - [Project structure](#project-structure)
+- [How I used AI](#how-i-used-ai)
 
 ---
 
@@ -340,3 +341,25 @@ supabase/
 ```
 
 The schema is defined by the migrations in [`supabase/migrations`](supabase/migrations), from `create_core_tables` to `add_calendar_feeds`. `npx supabase db reset` rebuilds a local database from them.
+
+---
+
+## How I used AI
+
+### In the product
+
+AI is the core of Knots: a free OpenRouter model turns each transcript into a summary, decisions and action items. I treat its output as untrusted. The reply must match a schema, owners and dates are kept only if they appear in the transcript, and anything doubtful is flagged for review instead of guessed. The details are under [AI output is treated as untrusted](#ai-output-is-treated-as-untrusted).
+
+### In development
+
+I used Claude throughout the project, mainly as a teacher and a sounding board, and on purpose not as a way to skip understanding my own code.
+
+- **Planning.** I started by working through the data model with it, sketching the entity relationship diagram before writing any SQL.
+- **Relearning the backend.** I have used Supabase with Row Level Security before, on my final project, Droplet, but I needed to see how everything clicks together again. So rather than ask AI for the whole backend, I had it write a tutorial and built the backend file by file from it, working through the core concepts as I went.
+- **Understanding the frontend.** When I didn't understand a piece of frontend code, I asked for a tutorial that walked through it rather than a quick answer, then followed it closely until it made sense.
+- **Rebuilding my own skills.** Over the past year at Open Window, our lecturers saw AI as the future of the industry and encouraged us to use it as much as possible, especially on our final project, so we could deliver polished portfolio work on top of the coding foundations we already had. My hand-written coding got rusty in that time, so I used this project to get back into writing and reading code myself. Over the next few months I plan to keep practising hand-written code, so that when I use AI I can confidently audit what it produces and make sure it is secure.
+- **Revising concepts.** When a concept didn't click, such as how RLS policies decide what a user can see, I asked for a short PDF explaining it. I then loaded those PDFs into NotebookLM and revised with its generated audio and video overviews.
+- **Talking through decisions.** I kept one long-running conversation as a sounding board, comparing approaches and trade-offs as problems came up, for example how to handle the calendar integration and AI failures.
+- **Saving time on low-risk work.** For tasks that didn't need my full attention, I let it write the code: the demo account switcher, for example, and styling from my own designs that I know I could build in Tailwind myself, just more slowly.
+
+The result is a project I can walk through line by line, and a much stronger grasp of the backend than I started with.
