@@ -1,6 +1,8 @@
--- Local test data. Runs after the migrations on `npx supabase db reset`.
+-- Demo data. Runs after the migrations on `npx supabase db reset`, and can be
+-- run once in the SQL editor of a hosted project to add the demo accounts there.
 -- Three users, to check that nobody sees meetings that are not theirs.
--- All sign in with the password Knots-demo-1 (local only, never in production).
+-- All sign in with the password Knots-demo-1. It is public on purpose: the
+-- sidebar's demo account switcher uses it, and these accounts hold demo data only.
 
 -- 1. Users. The on_auth_user_created trigger creates their profiles.
 insert into auth.users (

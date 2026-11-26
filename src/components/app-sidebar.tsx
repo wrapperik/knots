@@ -1,6 +1,8 @@
 import { CalendarDays, ListChecks, LogOut, UserRound, type LucideIcon } from 'lucide-react'
 import { Link, useLocation, useNavigate } from 'react-router'
 
+import { DemoAccountSwitcher } from '@/components/demo-account-switcher'
+
 import {
   Sidebar,
   SidebarContent,
@@ -104,6 +106,7 @@ export function AppSidebar() {
           <SidebarGroupLabel>Workspace</SidebarGroupLabel>
           <NavList items={workspaceItems} />
         </SidebarGroup>
+        <DemoAccountSwitcher />
       </SidebarContent>
 
       <SidebarFooter>

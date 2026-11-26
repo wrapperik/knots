@@ -160,7 +160,9 @@ To stop, run `npx supabase stop` before quitting Docker Desktop.
 
 ## Demo accounts
 
-The seed data in [`supabase/seed.sql`](supabase/seed.sql) creates three users on the **local** database. All of them use the password `Knots-demo-1`, which is local only and never used in production.
+The seed data in [`supabase/seed.sql`](supabase/seed.sql) creates three demo users. All of them use the password `Knots-demo-1`, which is public on purpose: these accounts hold demo data only.
+
+**Switching accounts in one click:** the sidebar's **Demo accounts** list logs in as any of them without leaving the current page. Open one of Alex's meetings, switch to Jordan, and the same page shows "Meeting not found", because the database no longer returns it. The page reloads its data for the new user each time.
 
 | Email | Has | Use it to check |
 | --- | --- | --- |
@@ -170,7 +172,7 @@ The seed data in [`supabase/seed.sql`](supabase/seed.sql) creates three users on
 
 There is one role, a regular user: every user owns their own meetings and sees nothing else. The three accounts exist so data isolation can be checked from more than one side.
 
-The **live app** starts without demo data. Create an account on the sign-up page; email confirmation is turned off on the live project so the account works straight away.
+On the **live app**, the demo accounts exist once `supabase/seed.sql` has been run in the project's SQL editor. Anyone can also create their own account on the sign-up page; email confirmation is turned off on the live project so it works straight away.
 
 ---
 
